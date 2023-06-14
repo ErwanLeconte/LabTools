@@ -37,10 +37,10 @@ def tif_to_rg_chromaticity(tif_path):
     return chromaticity_image
 
 # Path to the input TIFF image
-tif_path = r'C:\Users\erwan\OneDrive\Documents\GrutterLab\Data\All_Samples\Wyatt_4\use_this.tif'
+tif_path = r'C:\Users\erwan\OneDrive\Documents\GrutterLab\Data\Actual Optical Data\004_300.tif'
 
 # Convert the TIFF image to RGB chromaticity
 chromaticity_image = tif_to_rg_chromaticity(tif_path)
 
 # Save the chromaticity image
-chromaticity_image.save(r'C:\Users\erwan\OneDrive\Documents\GrutterLab\Data\All_Samples\Wyatt_4\chromaticity_image.tif')
+chromaticity_image.save(r'C:\Users\erwan\OneDrive\Documents\GrutterLab\Data\Actual Optical Data\chroma_004_300.tif')
