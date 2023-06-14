@@ -4,6 +4,10 @@ import sys
 
 #definitions
 
+# #initialize counting variables for successes, errors
+# successes = 0
+# errors = 0
+
 def tif_to_rg_chromaticity(filename):
     try:
         rgb_path = os.path.join(folder_path,filename)
@@ -29,9 +33,18 @@ def tif_to_rg_chromaticity(filename):
                 
                 # Calculate the chromaticity values
                 total = r + g + b
-                r_chrom = r / total
-                g_chrom = g / total
-                b_chrom = b/total
+
+                if total != 0:
+
+                    r_chrom = r / total
+                    g_chrom = g / total
+                    b_chrom = b/total
+
+                else: 
+
+                    r_chrom = 0
+                    g_chrom = 0
+                    b_chrom = 0
                 
                 # Scale the chromaticity values to 0-255 range
                 r_chrom_scaled = int(r_chrom * 255)
@@ -45,9 +58,11 @@ def tif_to_rg_chromaticity(filename):
         chromaticity_path = os.path.join(chromaticity_folder, f'chromaticity_{filename}')
         chromaticity_image.save(chromaticity_path)
 
+       # successes += 1
         print(f'Successfuly converted {filename} to rgb chromaticity')
 
     except Exception as e: 
+        #errors += 1
         print(f'Error processing {filename}: {e}')
 
 
@@ -65,7 +80,10 @@ if not os.path.isdir(folder_path):
 chromaticity_folder = os.path.join(folder_path, 'chromaticity')
 os.makedirs(chromaticity_folder, exist_ok=True)
 
+
 #convert files ending in .tif/.tiff
 for filename in os.listdir(folder_path):
     if filename.endswith('.tif') or filename.endswith('.tiff'):
         tif_to_rg_chromaticity(filename)
+
+print(f'Task complete')
