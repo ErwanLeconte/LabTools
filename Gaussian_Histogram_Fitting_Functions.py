@@ -98,23 +98,27 @@ def plot_fit():
     #create more x values (subdivisions of the range of the models) to evaluate our model -> nicer curve
     x_fit = np.linspace(x.min(), x.max(), 500)
 
+    #plot original data
+    plt.plot(x,y, label='Original data')
+    
     #plot the model
     if peak_count == 1:
-        plt.plot(x_fit, gauss(x_fit, *params_table["params"]), color='red', lw=3, label='model')
+        plt.plot(x_fit, gauss(x_fit, *params_table["params"]), color='red', lw=3, label='Model')
     
     elif peak_count == 2:
-        plt.plot(x_fit, bimodal(x_fit, *params_table["params"]), color='red', lw=3, label='model')
+        plt.plot(x_fit, bimodal(x_fit, *params_table["params"]), color='red', lw=3, label='Model')
 
-    elif peak_count ==3:
-        plt.plot(x_fit, trimodal(x_fit, *params_table["params"]), color='red', lw=3, label='model')
+    elif peak_count == 3:
+        plt.plot(x_fit, trimodal(x_fit, *params_table["params"]), color='red', lw=3, label='Model')
     
-#todo: plot 4-6 peaks
+    #todo: plot 4-6 peaks
 
     #plot individual curves
     for i in range(0, peak_count):
-        plt.plot(x_fit, gauss(x_fit, *params_table["params"][i*3:(i+1)*3]), color='red', lw=1, ls="--", label=f'distribution {i}')
+        plt.plot(x_fit, gauss(x_fit, *params_table["params"][i*3:(i+1)*3]), color='red', lw=1, ls="--", label=f'Distribution {i+1}')
     
-    plt.show()
+    plt.legend()
+
 
 #TODO: delta mu for consecutive peaks
 
@@ -122,33 +126,34 @@ def extract_means():
     means = np.array([params_table["params"][3*i] for i in range(peak_count)])
     return means
 
-def steps(array):
-    steps = array[:-1]-array[1:]
-    return steps
+def extract_sigmas():
+    sigmas = np.array([params_table["sigma"][3*i] for i in range(peak_count)])
+    return sigmas
+
+
+def steps(means, sigmas):
+    steps = means[:-1]-means[1:]
+    uncertainty = sigmas[:-1]+means[1:]
+    return steps, uncertainty
 
 
 
 #main
 
 x,y,x_mag,y_mag = csv_to_x_y(input('CSV location?'))
+print('Close graph to proceed')
 plt.plot(x,y)
 plt.show()
 peak_count = get_fit_type()
 params_table = fit_type_to_fn(peak_count)
 plot_fit()
+plt.show()
 print(params_table)
 means = extract_means()
-steps = steps(means)
-print(steps)
+sigmas = extract_sigmas()
+if peak_count == 2:
+    heights, uncertainty = steps(means, sigmas)    
+    print(f'Step height:{heights[0]} ± {uncertainty[0]} nm') #this only works for one step, will need to make it smarter for 0 or 2
 
-
-#test
-# print(bimodal_fit(ast.literal_eval(input('Expected parameters? Enter a tuple:"(mu1,sigma1,A1,etc.)", no spaces'))))
-
-
-
-
-#x, y = csv_to_x_y(r'C:\Users\erwan\OneDrive\Documents\GrutterLab\Data\All_Samples\Wyatt_4\histo_test_2.csv')
-#gauss_fit((1,1,1))
 
 
