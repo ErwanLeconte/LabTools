@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 import csv
-import statistics
 import sys
 import ast
 
@@ -19,17 +18,25 @@ def trimodal(x, mu1, sigma1, A1, mu2, sigma2, A2, mu3, sigma3, A3):
 
 #data from csv
 def csv_to_x_y(file_path):
+    
+    #deal with headers
+    has_header = input('Header? (Y/N)')    
+    csv_delimiter = input('CSV delimiter?')
+    
     with open(file_path) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=';')
+        csv_reader = csv.reader(csv_file, delimiter = csv_delimiter)
+        
+        #skip headers
+        if has_header in ['Y', 'y', '1']:
+            next(csv_reader)
         data = pd.DataFrame(csv_reader)
 
         x = np.array(data[0], dtype = float)
         y = np.array(data[1], dtype = float)
 
         #normalize x, y to avoid overflow/underflow issues
-        x_mag = statistics.mode(np.fix(np.log10(np.abs(x))))    #fix: floor towards 0
-        y_mag = statistics.mode(np.fix(np.log10(np.abs(y)))) 
-
+        x_mag = np.floor(np.log10(np.abs(x))).astype(int).mode()    
+        y_mag = np.floor(np.log10(np.abs(y))).astype(int).mode()
         x = x * 10 ** (-x_mag)
         y = y * 10 ** (-y_mag)
 
@@ -67,7 +74,6 @@ def pentamodal_fit():
 def hexamodal_fit():
     print('NOT YET IMPLEMENTED')
 
-''
 #get peak # from user input
 def get_fit_type():
     fit_type = int(input('Number of Distributions? (1,2,3)').strip())
@@ -132,8 +138,8 @@ def extract_sigmas():
 
 
 def steps(means, sigmas):
-    steps = means[:-1]-means[1:]
-    uncertainty = sigmas[:-1]+means[1:]
+    steps = (means[:-1]-means[1:]) * x_mag
+    uncertainty = (sigmas[:-1]+means[1:]) * x_mag
     return steps, uncertainty
 
 

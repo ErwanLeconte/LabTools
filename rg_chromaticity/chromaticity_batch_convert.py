@@ -86,4 +86,4 @@ for filename in os.listdir(folder_path):
     if filename.endswith('.tif') or filename.endswith('.tiff'):
         tif_to_rg_chromaticity(filename)
 
-print(f'Task complete')
+print(f'Conversion complete')
