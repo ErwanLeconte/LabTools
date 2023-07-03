@@ -86,4 +86,7 @@ for filename in os.listdir(folder_path):
     if filename.endswith('.tif') or filename.endswith('.tiff'):
         tif_to_rg_chromaticity(filename)
 
+    else:   
+        print(f'Unable to convert file: {filename} is not a TIF file')
+
 print(f'Conversion complete')
