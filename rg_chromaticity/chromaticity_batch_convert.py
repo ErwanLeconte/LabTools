@@ -1,15 +1,17 @@
 from PIL import Image
 import os 
 import sys
+import fnmatch
 
 #definitions
 
-# #initialize counting variables for successes, errors
-# successes = 0
-# errors = 0
+#initialize counting variables for successes, errors
+success = 0
+error = 0
 
 def tif_to_rg_chromaticity(filename):
     try:
+        global success, error
         rgb_path = os.path.join(folder_path,filename)
 
         # Open the rgb image
@@ -58,30 +60,33 @@ def tif_to_rg_chromaticity(filename):
         chromaticity_path = os.path.join(chromaticity_folder, f'chromaticity_{filename}')
         chromaticity_image.save(chromaticity_path)
 
-       # successes += 1
-        print(f'Successfuly converted {filename} to rgb chromaticity')
+        success += 1
+        print(f'{success}/{tif_count}: Successfuly converted {filename} to rgb chromaticity')
 
     except Exception as e: 
-        #errors += 1
-        print(f'Error processing {filename}: {e}')
+       error += 1
+       print(f'Error processing {filename}: {e}')
 
 
 #main
 
 #get wd
-folder_path = input('Path to folder to convert?')
+folder_path = input('Path to folder to convert?').strip('\"\'')
 
 #check the wd is valid
 if not os.path.isdir(folder_path):
     print('Invalid folder path. Please provide a valid directory path.')
     sys.exit()
 
+#count the number of tif files to convert
+tif_count = len(fnmatch.filter(os.listdir(folder_path), '*.tif')) + len(fnmatch.filter(os.listdir(folder_path), '*.tiff'))
+print(f'There are {tif_count} .tif files to convert')
+
 #create folder for chromaticity images
 chromaticity_folder = os.path.join(folder_path, 'chromaticity')
 os.makedirs(chromaticity_folder, exist_ok=True)
 
-
-#convert files ending in .tif/.tiff
+#convert files ending in .tif/.tiff             RODO: make this one list with the above function?
 for filename in os.listdir(folder_path):
     if filename.endswith('.tif') or filename.endswith('.tiff'):
         tif_to_rg_chromaticity(filename)
