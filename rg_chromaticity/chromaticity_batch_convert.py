@@ -86,7 +86,7 @@ print(f'There are {tif_count} .tif files to convert')
 chromaticity_folder = os.path.join(folder_path, 'chromaticity')
 os.makedirs(chromaticity_folder, exist_ok=True)
 
-#convert files ending in .tif/.tiff             RODO: make this one list with the above function?
+#convert files ending in .tif/.tiff             TODO: make this one list with the above function?
 for filename in os.listdir(folder_path):
     if filename.endswith('.tif') or filename.endswith('.tiff'):
         tif_to_rg_chromaticity(filename)
