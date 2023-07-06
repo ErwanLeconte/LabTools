@@ -2,9 +2,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
+import scipy.stats as stats
 import csv
 import sys
 import ast
+
+def get_magnitude(array):    #returns modal power of 10 of an array for normalizing
+    powers = np.floor(np.log10(np.abs(array))).astype(int)
+    modal_power = stats.mode(powers)[0]
+    return modal_power
+    
 
 #Model definitions:
 def gauss(x, mu, sigma, A):
@@ -35,8 +42,9 @@ def csv_to_x_y(file_path):
         y = np.array(data[1], dtype = float)
 
         #normalize x, y to avoid overflow/underflow issues
-        x_mag = np.floor(np.log10(np.abs(x))).astype(int).mode()    
-        y_mag = np.floor(np.log10(np.abs(y))).astype(int).mode()
+        x_mag = float(get_magnitude(x))
+        y_mag = float(get_magnitude(y))
+
         x = x * 10 ** (-x_mag)
         y = y * 10 ** (-y_mag)
 
