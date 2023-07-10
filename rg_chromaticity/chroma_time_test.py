@@ -1,3 +1,5 @@
+#Copy of the most recent chromaticity conversion script as of 2023/07/10 with time measurements for further optimisation, if required
+
 from PIL import Image
 import numpy as np
 import os 
@@ -33,7 +35,7 @@ def tif_to_rg_chromaticity():
         chromaticity_image = Image.fromarray(chromaticity_array)
 
         # Create chromaticity file path
-        chromaticity_path = os.path.join(r"C:\Users\erwan\OneDrive\Desktop", f'chroma_time_test.tif')
+        chromaticity_path = os.path.join(r'C:\Users\erwan\OneDrive\Desktop', r'chroma_time_test.tif')
         chromaticity_image.save(chromaticity_path)
 
         end_time = time.monotonic()

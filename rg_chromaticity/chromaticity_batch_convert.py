@@ -12,7 +12,7 @@ error = 0
 
 def tif_to_rg_chromaticity(filename):
     try:
-
+        #access the two variables
         global success, error
         #generate the path for the image being processed
         rgb_path = os.path.join(folder_path,filename)
@@ -61,8 +61,8 @@ def tif_to_rg_chromaticity(filename):
 
 #===main===
 
-#get wd
-folder_path = input('Path to folder to convert?').strip('\"\'')
+#get wd from user input
+folder_path = input('Path to folder to convert?').strip('\"\'') #single and double quotes are OK
 
 #check the wd is valid
 if not os.path.isdir(folder_path):
@@ -85,4 +85,5 @@ for filename in os.listdir(folder_path):
     else:   
         print(f'Skipped {filename}: not a TIF file')
 
+#Final message :)
 print(f'Conversion complete: {success} successes, {error} errors')
