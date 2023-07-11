@@ -1,3 +1,7 @@
+#EXPORT DATA SO THERE IS ONLY ONE ROW OF HEADERS. Alternatively, skip more than one line at line 42 
+
+#Improvements: add a pedestal (line w/ slope = 0) or slope to the fit
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,54 +11,55 @@ import csv
 import sys
 import ast
 
-def get_magnitude(array):    #returns modal power of 10 of an array for normalizing
+def modal_magnitude(array):    #returns modal power of 10 of an array for normalizing, necessary to avoid underflow issues (numbers so small that they're rounded to 0)
     powers = np.floor(np.log10(np.abs(array))).astype(int)
     modal_power = stats.mode(powers)[0]
     return modal_power
     
 
-#Model definitions:
-def gauss(x, mu, sigma, A):
+#Model definitions:                 TODO: use only gaussian and unpack + pass expected params three at a time to separate gaussian models. recombine at the end for the table
+def gauss(x, mu, sigma, A):     #simple gaussian model
     return A*np.exp(-(x-mu)**2/2/sigma**2)
 
-def bimodal(x, mu1, sigma1, A1, mu2, sigma2, A2):
+def bimodal(x, mu1, sigma1, A1, mu2, sigma2, A2):       #sum of two gaussians
     return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
 
-def trimodal(x, mu1, sigma1, A1, mu2, sigma2, A2, mu3, sigma3, A3):
+def trimodal(x, mu1, sigma1, A1, mu2, sigma2, A2, mu3, sigma3, A3):     #three gaussians
     return gauss(x,mu1,sigma1,A1) + gauss(x,mu2,sigma2,A2) + gauss(x, mu3, sigma3, A3)
 
-#data from csv
+#get data from csv (comma separated values : widely used data format and used by gwyddion, imageJ when exporting data)
 def csv_to_x_y(file_path):
     
-    #deal with headers
+    #prompt for headers and csv delimiter
     has_header = input('Header? (Y/N)')    
     csv_delimiter = input('CSV delimiter?')
     
-    with open(file_path) as csv_file:
+    with open(file_path) as csv_file:       #using a with statements is best practice for ressource management (I think?) but probably isn't necessary here
         csv_reader = csv.reader(csv_file, delimiter = csv_delimiter)
         
         #skip headers
         if has_header in ['Y', 'y', '1']:
-            next(csv_reader)
+            next(csv_reader)    #if there is a header, skips the first line. export data so that there is only one header row, or skip more lines in this line
         data = pd.DataFrame(csv_reader)
 
+        #declare x and y values for plotting and fitting
         x = np.array(data[0], dtype = float)
         y = np.array(data[1], dtype = float)
 
         #normalize x, y to avoid overflow/underflow issues
-        x_mag = float(get_magnitude(x))
-        y_mag = float(get_magnitude(y))
+        x_mag = float(modal_magnitude(x))
+        y_mag = float(modal_magnitude(y))
 
         x = x * 10 ** (-x_mag)
         y = y * 10 ** (-y_mag)
 
-        return x,y,x_mag,y_mag
+        return x,y,x_mag,y_mag  #these values are returned by the function and are later assigned to global variables of the same name
 
 #fit gaussian
-def gauss_fit(expected): #takes a tuple : (mu, s, A)
-    params, cov = curve_fit(gauss, x, y, expected)
-    sigma = np.sqrt(np.diag(cov))
-    params_table = pd.DataFrame(data={'params': params, 'sigma': sigma}, index=gauss.__code__.co_varnames[1:])
+def gauss_fit(expected): #takes a tuple : (mu, s, A). TODO: make this smarter (user inputs numbers and create a tuple from that?)
+    params, cov = curve_fit(gauss, x, y, expected)  #params: parameters of the best fit found by scipy black magic. cov: covariance matrix. contains sigma squared
+    sigma = np.sqrt(np.diag(cov))       #recover sigma from covariance matrix
+    params_table = pd.DataFrame(data={'params': params, 'sigma': sigma}, index=gauss.__code__.co_varnames[1:])  #make a nice table with the parameters and sigmas
     return params_table
 
 #fit bimodal
@@ -72,15 +77,15 @@ def trimodal_fit(expected): #takes a tuple: (mu1, s1, A1, mu2, s2, A2, mu3, s3, 
    #return params, sigma, cov, params_table
     return params_table
 
-#TODO: 4modal
-def quadrimodal_fit(): 
-    print('NOT YET IMPLEMENTED')
+#TODO: 4modal and above
+# def quadrimodal_fit(): 
+#     print('NOT YET IMPLEMENTED')
 
-def pentamodal_fit():
-    print('NOT YET IMPLEMENTED')
+# def pentamodal_fit():
+#     print('NOT YET IMPLEMENTED')
 
-def hexamodal_fit():
-    print('NOT YET IMPLEMENTED')
+# def hexamodal_fit():
+#     print('NOT YET IMPLEMENTED')
 
 #get peak # from user input
 def get_fit_type():
@@ -95,15 +100,16 @@ def get_fit_type():
     return(fit_type)
 
 #create function for (distr. # -> function to call)
-def fit_type_to_fn(number,):
+def fit_type_to_fn(number):
     distr_num_to_fn = {
         1: gauss_fit,
         2: bimodal_fit,
         3: trimodal_fit,
-        4: quadrimodal_fit,
-        5: pentamodal_fit,
-        6: hexamodal_fit,
+#         4: quadrimodal_fit,
+#         5: pentamodal_fit,
+#         6: hexamodal_fit,
 }
+    #prompt for expected parameters and apply the chosen fit
     expected = ast.literal_eval(input('Expected parameters? Enter a tuple:"(mu1,sigma1,A1)", no spaces'))
     return distr_num_to_fn[number](expected)
 
@@ -131,37 +137,42 @@ def plot_fit():
     for i in range(0, peak_count):
         plt.plot(x_fit, gauss(x_fit, *params_table["params"][i*3:(i+1)*3]), color='red', lw=1, ls="--", label=f'Distribution {i+1}')
     
-    plt.legend()
+    plt.legend()    #display legend
 
 
-#TODO: delta mu for consecutive peaks
+#TODO: steps for several consecutive peaks
 
-def extract_means():
+def extract_means():    #returns the means of the gaussians: the reported value for step height
     means = np.array([params_table["params"][3*i] for i in range(peak_count)])
     return means
 
-def extract_sigmas():
-    sigmas = np.array([params_table["sigma"][3*i] for i in range(peak_count)])
+def extract_sigmas():   #returns the uncertainty of each reported step height
+    sigmas = np.array([params_table["sigma"][3*i] for i in range(peak_count)])  
     return sigmas
 
 
-def steps(means, sigmas):
+def steps(means, sigmas):   #merge the means and sigmas
     steps = (means[:-1]-means[1:]) * x_mag
     uncertainty = (sigmas[:-1]+means[1:]) * x_mag
     return steps, uncertainty
 
 
 
-#main
+#===main===
 
-x,y,x_mag,y_mag = csv_to_x_y(input('CSV location?'))
-print('Close graph to proceed')
+#from csv, get x,y columns and their magnitudes to de-normalize later
+x,y,x_mag,y_mag = csv_to_x_y(input('CSV location?').strip('\"\''))
+#plot for user reference to give fit number and expected parameters
 plt.plot(x,y)
-plt.show()
+plt.show(block=False)
+#get fit type and fit that with expected parameters as a starting point. no need to be precise
 peak_count = get_fit_type()
 params_table = fit_type_to_fn(peak_count)
-plot_fit()
-plt.show()
+plt.clf()   #clear the previous plot to make room for the new one
+plt.close() #close the window of the previous plot
+plot_fit()  #plot the fit and its components
+plt.show(block=False)   #show the plot
+#print results
 print(params_table)
 means = extract_means()
 sigmas = extract_sigmas()
@@ -170,4 +181,6 @@ if peak_count == 2:
     print(f'Step height:{heights[0]} ± {uncertainty[0]} nm') #this only works for one step, will need to make it smarter for 0 or 2
 
 
-
+#Prompt user to exit. Otherwise, the graph is closed as soon as it is displayed as the end of the code would be reached
+if input('Clear? y/n') in ['yes', 'y', '1']:
+    sys.exit()
