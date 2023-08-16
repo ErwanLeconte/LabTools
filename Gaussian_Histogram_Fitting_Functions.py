@@ -1,6 +1,7 @@
 #EXPORT DATA SO THERE IS ONLY ONE ROW OF HEADERS. Alternatively, skip more than one line at line 42 
 
 #Improvements: add a pedestal (line w/ slope = 0) or slope to the fit
+#TODO: replace sigmas by curve sigma
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +18,7 @@ def modal_magnitude(array):    #returns modal power of 10 of an array for normal
     return modal_power
     
 
-#Model definitions:                 TODO: use only gaussian and unpack + pass expected params three at a time to separate gaussian models. recombine at the end for the table
+#Model definitions:             TODO: use only gaussian and unpack + pass expected params three at a time to separate gaussian models. recombine at the end for the table
 def gauss(x, mu, sigma, A):     #simple gaussian model
     return A*np.exp(-(x-mu)**2/2/sigma**2)
 
@@ -31,7 +32,7 @@ def trimodal(x, mu1, sigma1, A1, mu2, sigma2, A2, mu3, sigma3, A3):     #three g
 def csv_to_x_y(file_path):
     
     #prompt for headers and csv delimiter
-    has_header = input('Header? (Y/N)')    
+    has_header = input('Header? (Y/N)')
     csv_delimiter = input('CSV delimiter?')
     
     with open(file_path) as csv_file:       #using a with statements is best practice for ressource management (I think?) but probably isn't necessary here
@@ -142,14 +143,6 @@ def plot_fit():
 
 #TODO: steps for several consecutive peaks
 
-def extract_means():    #returns the means of the gaussians: the reported value for step height
-    means = np.array([params_table["params"][3*i] for i in range(peak_count)])
-    return means
-
-def extract_sigmas():   #returns the uncertainty of each reported step height
-    sigmas = np.array([params_table["sigma"][3*i] for i in range(peak_count)])  
-    return sigmas
-
 
 def steps(means, sigmas):   #merge the means and sigmas
     steps = (means[:-1]-means[1:]) * x_mag
@@ -172,15 +165,29 @@ plt.clf()   #clear the previous plot to make room for the new one
 plt.close() #close the window of the previous plot
 plot_fit()  #plot the fit and its components
 plt.show(block=False)   #show the plot
-#print results
-print(params_table)
-means = extract_means()
-sigmas = extract_sigmas()
-if peak_count == 2:
-    heights, uncertainty = steps(means, sigmas)    
-    print(f'Step height:{heights[0]} ± {uncertainty[0]} nm') #this only works for one step, will need to make it smarter for 0 or 2
+
+#report step heights
+means_array = np.array([params_table["params"][3*i] for i in range(peak_count)])
+steps_array = np.array([(means_array[i+1] - means_array[i])for i in range(peak_count-1)])
+
+sigma_array = np.array([abs(params_table['params'][3*i+1]) + abs(params_table['params'][3*i+4]) for i in range(peak_count-1)])
+
+#print stuff
+print(f'params:{params_table}')
+print(f'means:{means_array}')
+print(f'steps:{steps_array}')
+print(f'uncertainty:{sigma_array}')
+
+#currently useless
+# means = extract_means()
+# sigmas = extract_sigmas()
+
+#THIS IS WRONG
+# if peak_count == 2:
+#     heights, uncertainty = steps(means, sigmas)    
+#     print(f'Step height:{heights[0]} ± {uncertainty[0]} nm') #this only works for one step, will need to make it smarter for 0 or 2
 
 
-#Prompt user to exit. Otherwise, the graph is closed as soon as it is displayed as the end of the code would be reached
+#Prompt user to exit. Otherwise, the graph is closed as soon as it is displayed becasue the end of the code would be reached
 if input('Clear? y/n') in ['yes', 'y', '1']:
     sys.exit()
