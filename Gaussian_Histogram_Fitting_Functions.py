@@ -170,7 +170,7 @@ plt.show(block=False)   #show the plot
 means_array = np.array([params_table["params"][3*i] for i in range(peak_count)])
 steps_array = np.array([(means_array[i+1] - means_array[i])for i in range(peak_count-1)])
 
-sigma_array = np.array([abs(params_table['params'][3*i+1]) + abs(params_table['params'][3*i+4]) for i in range(peak_count-1)])
+sigma_array = np.array([(abs(params_table['params'][3*i+1]) + abs(params_table['params'][3*i+4])) for i in range(peak_count-1)])
 
 #print stuff
 print(f'params:{params_table}')
