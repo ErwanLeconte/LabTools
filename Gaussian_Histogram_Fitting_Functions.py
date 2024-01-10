@@ -1,3 +1,4 @@
+# Adapted from user B. M.'s answer to: https://stackoverflow.com/questions/35990467/fit-mixture-of-two-gaussian-normal-distributions-to-a-histogram-from-one-set-of
 #EXPORT DATA SO THERE IS ONLY ONE ROW OF HEADERS. Alternatively, skip more than one line at line 42 
 
 #Improvements: add a pedestal (line w/ slope = 0) or slope to the fit
