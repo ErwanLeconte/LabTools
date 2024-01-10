@@ -57,6 +57,7 @@ def csv_to_x_y(file_path):
 
         return x,y,x_mag,y_mag  #these values are returned by the function and are later assigned to global variables of the same name
 
+#TODO: define these by iteration
 #fit gaussian
 def gauss_fit(expected): #takes a tuple : (mu, s, A). TODO: make this smarter (user inputs numbers and create a tuple from that?)
     params, cov = curve_fit(gauss, x, y, expected)  #params: parameters of the best fit found by scipy black magic. cov: covariance matrix. contains sigma squared
@@ -146,8 +147,8 @@ def plot_fit():
 
 
 def steps(means, sigmas):   #merge the means and sigmas
-    steps = (means[:-1]-means[1:]) * x_mag
-    uncertainty = (sigmas[:-1]+means[1:]) * x_mag
+    steps = (means[:-1]-means[1:]) * 10 ** x_mag
+    uncertainty = (sigmas[:-1]+means[1:]) * 10 ** x_mag
     return steps, uncertainty
 
 
